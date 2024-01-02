@@ -64,6 +64,12 @@ func main() {
 	}
 
 	todoRouter.HandleFunc("/all", handler.ReadHandler).Methods("GET")
+	todoRouter.HandleFunc("/add", func(w http.ResponseWriter, r *http.Request) {
+		// Pre-flight request. Reply successfully:
+		if r.Method == http.MethodOptions {
+			return
+		}
+	}).Methods(http.MethodOptions)
 	todoRouter.HandleFunc("/add", handler.CreateHandler).Methods("POST")
 	todoRouter.HandleFunc("/delete/{id}", func(w http.ResponseWriter, r *http.Request) {
 		// Pre-flight request. Reply successfully:
