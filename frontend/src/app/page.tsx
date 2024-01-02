@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Modal from './components/Modal';
 
 interface Todo {
     id: number;
@@ -14,7 +15,7 @@ interface Todo {
     deadline: string;
 }
 
-const fetchTodos = async (): Promise<Todo[]> => {
+export const fetchTodos = async (): Promise<Todo[]> => {
     try {
         const { data } = await axios.get('http://localhost:8080/todo/all');
         return data;
@@ -27,10 +28,12 @@ const fetchTodos = async (): Promise<Todo[]> => {
 export default function Home() {
     const [todos, setTodos] = useState<Todo[]>([]);
     const [editedTodoId, setEditedTodoId] = useState<number | null>(null);
+    const [isNewTodoFormOpen, setIsNewTodoFormOpen] = useState(false);
+    const [toggle, setToggle] = useState(false);
 
     useEffect(() => {
         fetchTodos().then((data) => setTodos(data));
-    }, []);
+    }, [toggle]);
 
     const submitHandler = async (e: React.FormEvent<HTMLFormElement>, todo: Todo) => {
         e.preventDefault();
@@ -73,8 +76,21 @@ export default function Home() {
     return (
         <main>
             <ToastContainer />
+            {isNewTodoFormOpen && (
+                <Modal close={() => setIsNewTodoFormOpen(false)} todoCreated={() => setToggle((prevState) => !prevState)} />
+            )}
             <div className="flex min-h-screen flex-col items-center justify-between p-24">
                 <div className="flex flex-col items-center space-y-12 justify-center">
+                    <Image
+                        src={'/add.svg'}
+                        alt="add"
+                        width="28"
+                        height="28"
+                        className="cursor-pointer"
+                        onClick={() => {
+                            setIsNewTodoFormOpen(true);
+                        }}
+                    />
                     {todos.map((todo) => (
                         <form
                             key={todo.id}
@@ -83,10 +99,14 @@ export default function Home() {
                         >
                             <fieldset
                                 disabled={todo.id !== editedTodoId}
-                                className="flex space-x-8 justify-center items-center text-black "
+                                className="flex space-x-8 justify-center items-center text-black w-auto"
                             >
                                 <input name="title" defaultValue={todo.title} />
-                                <input name="description" defaultValue={todo.description} />
+                                {editedTodoId === todo.id ? (
+                                    <input name="description" defaultValue={todo.description} className="w-auto" />
+                                ) : (
+                                    <div className="text-white">{todo.description}</div>
+                                )}
                                 <input name="deadline" defaultValue={format(todo.deadline, 'MM/dd/yyyy')} />
                             </fieldset>
                             {editedTodoId === todo.id ? (
@@ -118,7 +138,7 @@ export default function Home() {
                                     setTodos(data);
                                 }}
                             >
-                                <Image src={'/remove.svg'} alt="edit" width="28" height="28" />
+                                <Image src={'/remove.svg'} alt="remove" width="28" height="28" />
                             </button>
                         </form>
                     ))}
