@@ -5,18 +5,18 @@ import (
 	"log"
 	"net/http"
 	"os"
-
 	"package/todohandlers"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	_ "github.com/lib/pq"
 )
 
 func connectToSql() (*sql.DB, error) {
 	connStr := os.Getenv("DB_CONNECTION")
-	db, err := sql.Open("postgres", connStr)
+	//postgres://postgres:5ks6OSf1SLiGMLP@long-pine-5521.flycast:5432
+	db, err := sql.Open("pgx", connStr)
 	if err != nil {
 		return nil, err
 	}
@@ -30,10 +30,10 @@ func connectToSql() (*sql.DB, error) {
 }
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-        log.Fatal("Error loading .env file")
-    }
+	// err := godotenv.Load()
+	// if err != nil {
+    //     log.Fatal("Error loading .env file")
+    // }
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -91,7 +91,7 @@ func main() {
 		Addr: 	 ":" + port,
 	}
 	log.Printf("Server starting on port %s", port)
-	err = srv.ListenAndServe()
+	err := srv.ListenAndServe()
 	if err != nil {
 		log.Fatalf("error %v", err)
 	}
