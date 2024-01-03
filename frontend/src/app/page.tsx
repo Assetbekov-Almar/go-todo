@@ -17,7 +17,7 @@ interface Todo {
 
 export const fetchTodos = async (): Promise<Todo[]> => {
     try {
-        const { data } = await axios.get('http://localhost:8080/todo/all');
+        const { data } = await axios.get('https://todo-go.fly.dev/todo/all');
         return data;
     } catch (error) {
         console.error(error);
@@ -48,7 +48,7 @@ export default function Home() {
             }
 
             try {
-                const { status } = await axios.patch(`http://localhost:8080/todo/update/${todo.id}`, {
+                const { status } = await axios.patch(`https://todo-go.fly.dev/todo/update/${todo.id}`, {
                     description,
                     deadline,
                 });
@@ -126,7 +126,7 @@ export default function Home() {
                             <button
                                 onClick={async (e) => {
                                     e.preventDefault();
-                                    const { status } = await axios.delete(`http://localhost:8080/todo/delete/${todo.id}`);
+                                    const { status } = await axios.delete(`https://todo-go.fly.dev/todo/delete/${todo.id}`);
                                     if (status !== 200) {
                                         toast.error('Error deleting todo');
                                         return;

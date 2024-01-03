@@ -21,7 +21,7 @@ const Modal = ({ close, todoCreated }: ModalProps) => {
         }
 
         try {
-            const { status } = await axios.post(`http://localhost:8080/todo/add`, qs.stringify(object), {
+            const { status } = await axios.post(`https://todo-go.fly.dev/todo/add`, qs.stringify(object), {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             });
 
