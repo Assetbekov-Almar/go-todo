@@ -15,7 +15,7 @@ interface Todo {
     deadline: string;
 }
 
-export const fetchTodos = async (): Promise<Todo[]> => {
+const fetchTodos = async (): Promise<Todo[]> => {
     try {
         const { data } = await axios.get('https://todo-go.fly.dev/todo/all');
         return data;
