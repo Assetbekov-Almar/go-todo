@@ -4,8 +4,8 @@ const nextConfig = {
     images: {
         remotePatterns: [
             {
-                protocol: 'http',
-                hostname: 'localhost',
+                protocol: 'https',
+                hostname: 'todo-go.fly.dev/',
                 port: '8080',
                 pathname: '/static/**',
             },
