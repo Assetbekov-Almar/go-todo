@@ -82,7 +82,7 @@ export default function Home() {
             <div className="flex min-h-screen flex-col items-center justify-between p-24">
                 <div className="flex flex-col items-center space-y-12 justify-center">
                     <Image
-                        src={'/add.svg'}
+                        src={'./add.svg'}
                         alt="add"
                         width="28"
                         height="28"
@@ -111,7 +111,7 @@ export default function Home() {
                             </fieldset>
                             {editedTodoId === todo.id ? (
                                 <button type="submit">
-                                    <Image src={'/done.svg'} alt="edit" width="28" height="28" />
+                                    <Image src={'./done.svg'} alt="edit" width="28" height="28" />
                                 </button>
                             ) : (
                                 <button
@@ -120,7 +120,7 @@ export default function Home() {
                                         setEditedTodoId((prevState) => (prevState === todo.id ? null : todo.id));
                                     }}
                                 >
-                                    <Image src={'/pen.svg'} alt="edit" width="28" height="28" />
+                                    <Image src={'./pen.svg'} alt="edit" width="28" height="28" />
                                 </button>
                             )}
                             <button
@@ -138,7 +138,7 @@ export default function Home() {
                                     setTodos(data);
                                 }}
                             >
-                                <Image src={'/remove.svg'} alt="remove" width="28" height="28" />
+                                <Image src={'./remove.svg'} alt="remove" width="28" height="28" />
                             </button>
                         </form>
                     ))}
