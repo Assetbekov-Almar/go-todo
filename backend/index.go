@@ -6,12 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"package/authhandlers"
 	"package/todohandlers"
-
-	"time"
-
-	"crypto/rand"
-	"encoding/base64"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/handlers"
@@ -36,53 +32,24 @@ func connectToSql() (*sql.DB, error) {
 	return db, nil
 }
 
-var mySigningKey = []byte("secret")
-
-func generateRandomKey(length int) string {
-    key := make([]byte, length)
-    _, err := rand.Read(key)
-    if err != nil {
-        log.Fatalf("Failed to generate random key: %v", err)
-    }
-    return base64.StdEncoding.EncodeToString(key)
-}
-
-func generateJWT() (string, error) {
-	token := jwt.New(jwt.SigningMethodHS256)
-
-	claims := token.Claims.(jwt.MapClaims)
-
-	claims["authorized"] = true
-	claims["user"] = "username"
-	claims["exp"] = time.Now().Add(time.Minute * 60).Unix()
-
-	tokenString, err := token.SignedString(mySigningKey)
-
-	if err != nil {
-		log.Fatalf("Something went wrong: %s", err.Error())
-		return "", err
-	}
-
-	return tokenString, nil
-}
-
-func isAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
+func isAuthorized(accessSecret string, endpoint func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		accessToken := r.Header.Get("accessToken")
 
-		if r.Header["Token"] == nil {
-			fmt.Fprintf(w, "Not Authorized")
-		   return
+		if accessToken == "" {
+			fmt.Fprintln(w, "Not authorized")
+			return
 		}
 
-		token, err := jwt.Parse(r.Header["Token"][0], func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("there was an error")
 			}
-			return mySigningKey, nil
+			return accessSecret, nil
 		})
 
 		if err != nil {
-			fmt.Fprintln(w, err)
+			fmt.Fprint(w, err.Error())
 		}
 
 		if token.Valid {
@@ -96,6 +63,11 @@ func main() {
 	if err != nil {
         log.Fatal("Error loading .env file")
     }
+
+ 	accessSecret := os.Getenv("ACCESS_SECRET")
+	if accessSecret == "" {
+		log.Fatal("Set ACCESS_SECRET in .env file")
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -119,13 +91,23 @@ func main() {
 	fs := http.FileServer(http.Dir("static"))
 	r.PathPrefix("/static/").Handler((http.StripPrefix("/static/", fs)))
 
+	//
+	authhandler := &authhandlers.AuthHandler{ 
+		DB: db,
+	}
+
+
+	r.HandleFunc("/login", authhandler.LoginHandler).Methods("POST")
+
+	//
+
 	todoRouter := r.PathPrefix("/todo").Subrouter()
 
 	handler := &todohandlers.TodoHandler{ 
 		DB: db,
 	}
 
-	todoRouter.HandleFunc("/all", isAuthorized(handler.ReadHandler)).Methods("GET")
+	todoRouter.HandleFunc("/all", isAuthorized(accessSecret, handler.ReadHandler)).Methods("GET")
 	todoRouter.HandleFunc("/add", func(w http.ResponseWriter, r *http.Request) {
 		// Pre-flight request. Reply successfully:
 		if r.Method == http.MethodOptions {
