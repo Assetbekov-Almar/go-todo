@@ -78,17 +78,10 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hashedPassword, err := hashPassword(user.Password)
+	row := h.DB.QueryRow("SELECT password FROM users WHERE username = $1", user.Username)
 
-	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	row := h.DB.QueryRow("SELECT * FROM users WHERE username = $1 AND password = $2", user.Username, hashedPassword)
-
-	var dbUser models.User
-    err = row.Scan(&dbUser.ID, &dbUser.Username, &dbUser.Password)
+	var hashedPassword string
+    err = row.Scan(&hashedPassword)
     if err != nil {
         if err == sql.ErrNoRows {
             utils.RespondWithError(w, http.StatusUnauthorized, "Incorrect username or password")
@@ -97,6 +90,12 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
         }
         return
     }
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(user.Password))
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Incorrect username or password")
+		return
+	}
 
 	accessToken, refreshToken, errMsg := generateJWT()
 
