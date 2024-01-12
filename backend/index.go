@@ -98,6 +98,7 @@ func main() {
 
 
 	r.HandleFunc("/login", authhandler.LoginHandler).Methods("POST")
+	r.HandleFunc("/register", authhandler.RegisterHandler).Methods("POST")
 
 	//
 
