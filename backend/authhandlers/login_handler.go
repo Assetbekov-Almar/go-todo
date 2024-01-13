@@ -27,13 +27,15 @@ func hashPassword(password string) (string, error) {
     return string(bytes), nil
 }
 
-func createToken(expMinutes int, mySigningKey string) (string, error) {
+func createToken(lastLogout time.Time, userID string, expMinutes int, mySigningKey string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
 	claims["authorized"] = true
 	expDuration := time.Duration(expMinutes) * time.Minute
 	claims["exp"] = time.Now().Add(expDuration).Unix()
+	claims["userID"] = userID
+	claims["lastLogout"] = lastLogout.Unix()
 
 	tokenString, err := token.SignedString([]byte(mySigningKey))
 
@@ -45,16 +47,16 @@ func createToken(expMinutes int, mySigningKey string) (string, error) {
 	return tokenString, nil
 }
 
-func generateJWT() (string, string, string) {
+func generateJWT(userID string, lastLogout time.Time) (string, string, string) {
 	accessSecret := os.Getenv("ACCESS_SECRET")
 	refreshSecret := os.Getenv("REFRESH_SECRET")
-	accessToken, accessErr := createToken(15, accessSecret)
+	accessToken, accessErr := createToken(lastLogout, userID, 15, accessSecret)
 
 	if accessErr != nil {
 		return "", "", "Error creating access token"
 	}
 
-	refreshToken, refreshErr := createToken(60, refreshSecret)
+	refreshToken, refreshErr := createToken(lastLogout, userID, 60, refreshSecret)
 
 	if refreshErr != nil {
 		return "", "", "Error creating access token"
@@ -78,10 +80,12 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	row := h.DB.QueryRow("SELECT password FROM users WHERE username = $1", user.Username)
+	row := h.DB.QueryRow("SELECT id, password, lastlogout FROM users WHERE username = $1", user.Username)
 
 	var hashedPassword string
-    err = row.Scan(&hashedPassword)
+	var userID string
+	var lastLogout time.Time
+    err = row.Scan(&userID, &hashedPassword, &lastLogout)
     if err != nil {
         if err == sql.ErrNoRows {
             utils.RespondWithError(w, http.StatusUnauthorized, "Incorrect username or password")
@@ -97,7 +101,7 @@ func (h *AuthHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, refreshToken, errMsg := generateJWT()
+	accessToken, refreshToken, errMsg := generateJWT(userID, lastLogout)
 
 	if errMsg != "" {
 		utils.RespondWithError(w, http.StatusInternalServerError, errMsg)
