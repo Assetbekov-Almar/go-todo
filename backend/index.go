@@ -140,6 +140,12 @@ func main() {
 
 
 	r.HandleFunc("/login", authhandler.LoginHandler).Methods("POST")
+	r.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		// Pre-flight request. Reply successfully:
+		if r.Method == http.MethodOptions {
+			return
+		}
+	}).Methods(http.MethodOptions)
 	r.HandleFunc("/register", authhandler.RegisterHandler).Methods("POST")
 	r.HandleFunc("/refresh", authhandler.RefreshHandler).Methods("GET")
 	r.HandleFunc("/logout", authhandler.LogoutHandler).Methods("POST")
