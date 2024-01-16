@@ -4,8 +4,7 @@ import axios from 'axios';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import Modal from './components/Modal';
 
 interface Todo {
@@ -75,7 +74,6 @@ export default function Home() {
 
     return (
         <main>
-            <ToastContainer />
             {isNewTodoFormOpen && (
                 <Modal close={() => setIsNewTodoFormOpen(false)} todoCreated={() => setToggle((prevState) => !prevState)} />
             )}

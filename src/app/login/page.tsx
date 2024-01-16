@@ -1,30 +1,37 @@
 'use client';
 
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 import qs from 'qs';
 import { toast } from 'react-toastify';
+import { getLocalStorage } from '../utils/getLocalStorage';
 
 const Login = () => {
+    const router = useRouter();
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.target as HTMLFormElement);
         const username = formData.get('username');
         const password = formData.get('password');
-
-        try {
-            axios.post(
-                'http://localhost:8080/login',
+        axios
+            .post(
+                'http://localhost:8082/login',
                 qs.stringify({
                     username,
                     password,
                 }),
                 { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-            );
-        } catch (error) {
-            console.error(error);
-            toast.error('Could not login');
-            return;
-        }
+            )
+            .then((res) => {
+                const { 'Access-Token': accessToken, 'Refresh-Token': refreshToken } = res.headers;
+                getLocalStorage.setItem('accessToken', accessToken);
+                getLocalStorage.setItem('refreshToken', accessToken);
+                router.push('/');
+            })
+            .catch((error) => {
+                toast.error(error.response.data.error);
+                return;
+            });
     };
 
     return (
