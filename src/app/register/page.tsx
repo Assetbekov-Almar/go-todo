@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import qs from 'qs';
 import { toast } from 'react-toastify';
 
-const Login = () => {
+const Register = () => {
     const router = useRouter();
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -49,4 +49,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default Register;
