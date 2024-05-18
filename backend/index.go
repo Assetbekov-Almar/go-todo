@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"package/authhandlers"
+	"package/moviehandlers"
 	"package/todohandlers"
 	"package/utils"
 	"time"
@@ -139,6 +140,9 @@ func main() {
 	}
 
 
+	//TODO: add me route
+	//Add middleware on frontend
+
 	r.HandleFunc("/login", authhandler.LoginHandler).Methods("POST")
 	r.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		// Pre-flight request. Reply successfully:
@@ -151,6 +155,9 @@ func main() {
 	r.HandleFunc("/logout", authhandler.LogoutHandler).Methods("POST")
 
 	//
+
+
+	// todo section
 
 	todoRouter := r.PathPrefix("/todo").Subrouter()
 
@@ -180,6 +187,19 @@ func main() {
 		}
 	}).Methods(http.MethodOptions)
 	todoRouter.HandleFunc("/update/{id}", handler.UpdateHandler).Methods("PATCH")
+
+	//
+
+	// movie secion
+
+	movieRouter := r.PathPrefix("/movies").Subrouter()
+
+	movieHandler := &moviehandlers.MovieHandler{
+		DB: db,
+	}
+
+	movieRouter.HandleFunc("/all", isAuthorized(db, accessSecret, movieHandler.ReadHandler)).Methods("GET")
+
 
 	srv := &http.Server{
 		Handler: r,

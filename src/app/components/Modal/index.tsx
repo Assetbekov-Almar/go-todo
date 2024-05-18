@@ -45,7 +45,7 @@ const Modal = ({ close, todoCreated }: ModalProps) => {
             <div className="absolute z-10 w-full h-full bg-black opacity-70 cursor-pointer" onClick={close} />
             <div className="absolute z-20 top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/3 flex flex-col items-center bg-slate-400 w-[400px] h-[600px] rounded-lg">
                 <Image
-                    src="./close.svg"
+                    src="/close.svg"
                     alt="close"
                     width="28"
                     height="28"
